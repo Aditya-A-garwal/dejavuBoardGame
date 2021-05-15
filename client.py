@@ -153,8 +153,15 @@ while running:
                         pos[my_id][2] = pos_save[2].copy()
 
                     for position in pos_save[3]:
-                        if( position not in blocked_pos[my_id] ):
+                        flag = 1
+                        for i in range( 4 ):
+                            if( position in blocked_pos[i] ):
+                                flag = 0
+                                break
+                        if( flag ):
                             blocked_pos[my_id].append( position )
+                            to_send = '2;' + str( blocked_pos[my_id][-1][0] ) + ';' + str( blocked_pos[my_id][-1][1] ) + ';0\n'
+                            my_sock.send( to_send.encode('utf-8') )
 
                     pos_save = None
                     time_states[my_id] = 0
@@ -163,7 +170,7 @@ while running:
                     my_sock.send( to_send.encode('utf-8') )
 
                     for i in range( 3 ):
-                        to_send = '1;' + str( i ) + ';' + str( pos[my_id][i][0] ) + ';' + str( pos[my_id][i][1] ) + '\n'
+                        to_send = '1;' + str( i ) + ';' + str( pos[my_id][i][0] ) + ';' + str( pos[my_id][i][1] ) + ';0\n'
                         my_sock.send( to_send.encode('utf-8') )
 
         elif( event.type == pygame.KEYUP ):
@@ -182,7 +189,7 @@ while running:
                     pos[my_id][which_piece][0]  = mouse_pos[0]
                     pos[my_id][which_piece][1]  = mouse_pos[1]
 
-                    to_send = '1;' + str( which_piece ) + ';' + str( pos[my_id][which_piece][0] ) + ';' + str( pos[my_id][which_piece][1] ) + '\n'
+                    to_send = '1;' + str( which_piece ) + ';' + str( pos[my_id][which_piece][0] ) + ';' + str( pos[my_id][which_piece][1] ) + ';1\n'
                     my_sock.send( to_send.encode('utf-8') )
 
                     legal_show = False
@@ -198,7 +205,7 @@ while running:
                         pos[my_id][which_piece] = init_pos[which_piece].copy()
                         points[treasure_taken] -= 1
 
-                        to_send = '1;' + str( which_piece ) + ';' + str( init_pos[which_piece][0] ) + ';' + str( init_pos[which_piece][1] ) + '\n'
+                        to_send = '1;' + str( which_piece ) + ';' + str( init_pos[which_piece][0] ) + ';' + str( init_pos[which_piece][1] ) + ';0\n'
                         print(to_send)
                         my_sock.send( to_send.encode('utf-8') )
 
@@ -281,6 +288,9 @@ while running:
                     blocked_pos[my_id].append( mouse_pos.copy() )
                     legal_show = False
 
+                    to_send = '2;' + str( blocked_pos[my_id][-1][0] ) + ';' + str( blocked_pos[my_id][-1][1] ) + ';1\n'
+                    my_sock.send( to_send.encode('utf-8') )
+
         elif( event.type == pygame.MOUSEBUTTONUP ):
             pass
 
@@ -306,7 +316,6 @@ while running:
                 game_start = True
 
             elif( msg[0] == '1' ): # Server sending un/block a square
-
                 whom = int( msg[1] )
                 where = msg[2:4]
                 what = int( msg[4] )

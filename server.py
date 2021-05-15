@@ -1,3 +1,9 @@
+# Blocking a square is considered a move
+# Moving a piece is considered a move
+# If a treasure was decremented, then the previous move is not to be counted
+# If a state was reversed, then the previous moves are not to be considered moves
+# The last token in every message is whether it was a move or not
+
 import socket , selectors
 import random
 
@@ -10,6 +16,37 @@ plyr_count = 0
 conns = [None, None, None, None]
 names = ['', '', '', '']
 moves = [0, 0, 0, 0]
+
+blocked = [[], [], [], []]
+
+def tokenize( *args ):
+    pass
+
+def send_everyone( _msg ):
+    global conns
+
+    for i in range( 4 ):
+        conns[i].send( _msg.encode('utf-8') )
+
+def send_rest( _msg ,_sender ):
+    global conns
+
+    for i in range( 4 ):
+        if( i == _sender ): continue
+        conns[i].send( _msg.encode('utf-8') )
+
+# Function to check and remove blocked positions of a player
+def remove_blocked( _id ):
+    global conns, blocked, moves
+
+    moves[ _id ] += 1
+    while( len(blocked[who]) ):
+        if( moves[_id] - blocked[_id][0][2] < 4 ):
+            break
+
+        send_back = '1;' + str( _id ) + ';' + str( blocked[who][0][0] ) + ';' + str( blocked[who][0][1] ) + ';' + '0' + '\n'
+        send_everyone( send_back )
+        del blocked[who][0]
 
 # Function to accept new clients
 def accept():
@@ -29,11 +66,6 @@ def accept_name( _id ):
     msg = msg.split(';')
     names[_id] = msg[1].strip()
     print(_id, names[_id])
-
-def start_game():
-    msg = '0;' + (';'.join( names ))
-    print(msg)
-    for conn in conns: conn.send( msg.encode('utf-8') )
 
 # Start server
 my_ip = '127.0.0.1'
@@ -64,7 +96,8 @@ while not game_start:
         else:
             accept_name( key.data )
             if( plyr_count >= 4 ):
-                start_game()
+                send_back = '0;' + (';'.join( names ))
+                send_everyone( send_back )
                 game_start = True
                 break
 
@@ -81,32 +114,43 @@ while game_start:
             if( len(msg) <= 0 ): continue
 
             msg = msg.split(';')
-            print(msg)
 
             if( msg[0] == '1' ): # Piece moved
-                # (1;piece;x;y)
+                # (1;piece;x;y;move)
                 # (2;who;piece;x;y)
                 send_back = '2;' + str( who ) + ';' + msg[1] + ';' + ';'.join( msg[2:] ) + '\n'
+                send_rest( send_back, who )
+
+                if( msg[-1] == '1' ): # This needs to be counted as move
+                    remove_blocked( who )
+
+            elif( msg[0] == '2' ): # Square blocked
+                # (2;x;y)
+                # (1;who;x;y;what)
+
+                send_back = '1;' + str( who ) + ';' + msg[1] + ';' + msg[2] + ';' + '1' + '\n'
+
+                blocked[who].append( [int( msg[1] ), int( msg[2] ), moves[who]] )
+
                 for i in range( 4 ):
                     if( i == who ): continue
                     conns[i].send( send_back.encode('utf-8') )
 
-            elif( msg[0] == '2' ): # Square blocked
-                pass
+                if( msg[-1] == '1' ): # This needs to be counted as move
+                    remove_blocked( who )
 
             elif( msg[0] == '3' ): # Time state saved/unsaved
                 # (3;0/1)
                 # (4;who;what)
                 send_back = '4;' + str( who ) + ';' + msg[1] + '\n'
-                for i in range( 4 ):
-                    if( i == who ): continue
-                    conns[i].send( send_back.encode('utf-8') )
+                send_rest( send_back, who )
+
+                if( msg[-1] == '1' ): # This needs to be counted as move
+                    remove_blocked( who )
 
             elif( msg[0] == '4' ): # Client saying decrement treasure
                 #(4;who)
                 #(3;who)
                 send_back = '3;' + msg[1] + '\n'
-                for i in range( 4 ):
-                    if( i == who ): continue
-                    conns[i].send( send_back.encode('utf-8') )
+                send_rest( send_back, who )
 
