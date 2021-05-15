@@ -127,3 +127,9 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+boardgen.py
+temp.py
+todo.txt
+
+.vscode
