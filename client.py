@@ -4,8 +4,8 @@ import colors , BIT
 import random
 
 MSG_BLOCK_LEN = 2048
-BOARD_DIM     = 16
-GRID_DIM      = 60
+BOARD_DIM     = 12
+GRID_DIM      = 54
 
 name = input('Enter name: ').strip()
 plyr_count = 4
@@ -21,9 +21,8 @@ pygame.display.set_caption( name )
 # Mouse pos
 mouse_pos   = [0, 0]
 
-# Address of self and server
-my_addr     = ('', 8080)
-serv_addr   = ('127.0.0.1', 8080)
+# Address of server
+serv_addr   = (input('Enter Server IP: ').strip(), 8080)
 
 my_sock     = socket.socket()
 sock_mngr   = selectors.DefaultSelector()
@@ -62,7 +61,7 @@ time_states = [0, 0, 0, 0]
 
 # Game board
 # board       = [ [ random.randint(1, 15) for j in range( BOARD_DIM ) ] for i in range( BOARD_DIM ) ]
-board       = [[15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15], [15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15], [15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15], [15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15], [15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15], [15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15], [15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15], [15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15], [15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15], [15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15], [15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15], [15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15], [15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15], [15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15], [15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15], [15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15]]
+board       = [[15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15], [15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15], [15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15], [15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15], [15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15], [15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15], [15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15],[15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15], [15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15], [15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15], [15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15], [15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15]]
 
 # Load all textures
 board_sz    = [ (GRID_DIM + 1) * BOARD_DIM + 1 , (GRID_DIM + 1) * BOARD_DIM + 1 ]
@@ -234,12 +233,16 @@ while running:
                             while( i < BOARD_DIM ):
                                 if( BIT.is_valid( [i, y], pos ) and BIT.is_validb( [i, y], blocked_pos, my_id ) ):
                                     legal_moves.append( [i, y] )
+                                else:
+                                    break
                                 i += 1
 
                             i = x - 1
                             while( i >= 0 ):
                                 if( BIT.is_valid( [i, y], pos ) and BIT.is_validb( [i, y], blocked_pos, my_id ) ):
                                     legal_moves.append( [i, y] )
+                                else:
+                                    break
                                 i -= 1
 
                         if( BIT.BITS[1]( position ) ): # Left Rise
@@ -247,12 +250,16 @@ while running:
                             while( i >= 0 and j >= 0 ):
                                 if( BIT.is_valid( [i, j], pos ) and BIT.is_validb( [i, j], blocked_pos, my_id ) ):
                                     legal_moves.append( [i, j] )
+                                else:
+                                    break
                                 i -= 1; j -= 1
 
                             i, j = x + 1, y + 1
                             while( i < BOARD_DIM and j < BOARD_DIM ):
                                 if( BIT.is_valid( [i, j], pos ) and BIT.is_validb( [i, j], blocked_pos, my_id ) ):
                                     legal_moves.append( [i, j] )
+                                else:
+                                    break
                                 i += 1; j += 1
 
                         if( BIT.BITS[2]( position ) ): # Vertical
@@ -260,12 +267,16 @@ while running:
                             while( i < BOARD_DIM ):
                                 if( BIT.is_valid( [x, i], pos ) and BIT.is_validb( [x, i], blocked_pos, my_id ) ):
                                     legal_moves.append( [x, i] )
+                                else:
+                                    break
                                 i += 1
 
                             i = y - 1
                             while( i >= 0 ):
                                 if( BIT.is_valid( [x, i], pos ) and BIT.is_validb( [x, i], blocked_pos, my_id ) ):
                                     legal_moves.append( [x, i] )
+                                else:
+                                    break
                                 i -= 1
 
                         if( BIT.BITS[3]( position ) ): # Right Rise
@@ -273,12 +284,16 @@ while running:
                             while( i < BOARD_DIM and j >= 0 ):
                                 if( BIT.is_valid( [i, j], pos ) and BIT.is_validb( [i, j], blocked_pos, my_id ) ):
                                     legal_moves.append( [i, j] )
+                                else:
+                                    break
                                 i += 1; j -= 1
 
                             i, j = x - 1, y + 1
                             while( i >= 0 and j < BOARD_DIM ):
                                 if( BIT.is_valid( [i, j], pos ) and BIT.is_validb( [i, j], blocked_pos, my_id ) ):
                                     legal_moves.append( [i, j] )
+                                else:
+                                    break
                                 i -= 1; j += 1
 
             # Right click is for blocking a square

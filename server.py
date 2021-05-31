@@ -8,8 +8,8 @@ import socket , selectors
 import random
 
 MSG_BLOCK_LEN   = 2048
-BOARD_DIM     = 16
-GRID_DIM      = 60
+BOARD_DIM     = 12
+GRID_DIM      = 54
 
 # Gameplay related variables
 plyr_count = 0
@@ -20,7 +20,11 @@ moves = [0, 0, 0, 0]
 blocked = [[], [], [], []]
 
 def tokenize( *args ):
-    pass
+    msg = str( args[0] )
+    for i in range( len( args ) - 1 ):
+        msg += ';' + str( args[i + 1] )
+    msg += '\n'
+    return msg
 
 def send_everyone( _msg ):
     global conns
@@ -116,19 +120,19 @@ while game_start:
             msg = msg.split(';')
 
             if( msg[0] == '1' ): # Piece moved
-                # (1;piece;x;y;move)
-                # (2;who;piece;x;y)
-                send_back = '2;' + str( who ) + ';' + msg[1] + ';' + ';'.join( msg[2:] ) + '\n'
+                # (1;piece;x;y;move)    (2;who;piece;x;y)
+                send_back = tokenize( 2, who, msg[1], msg[2], msg[3] )
+                # send_back = '2;' + str( who ) + ';' + msg[1] + ';' + ';'.join( msg[2:] ) + '\n'
                 send_rest( send_back, who )
 
                 if( msg[-1] == '1' ): # This needs to be counted as move
                     remove_blocked( who )
 
             elif( msg[0] == '2' ): # Square blocked
-                # (2;x;y)
-                # (1;who;x;y;what)
+                # (2;x;y)   (1;who;x;y;what)
 
-                send_back = '1;' + str( who ) + ';' + msg[1] + ';' + msg[2] + ';' + '1' + '\n'
+                send_back = tokenize( 1, who, msg[1], msg[2], 1 )
+                # send_back = '1;' + str( who ) + ';' + msg[1] + ';' + msg[2] + ';' + '1' + '\n'
 
                 blocked[who].append( [int( msg[1] ), int( msg[2] ), moves[who]] )
 
@@ -140,17 +144,16 @@ while game_start:
                     remove_blocked( who )
 
             elif( msg[0] == '3' ): # Time state saved/unsaved
-                # (3;0/1)
-                # (4;who;what)
-                send_back = '4;' + str( who ) + ';' + msg[1] + '\n'
+                # (3;0/1)   (4;who;what)
+                send_back = tokenize( 4, who, msg[1] )
+                # send_back = '4;' + str( who ) + ';' + msg[1] + '\n'
                 send_rest( send_back, who )
 
                 if( msg[-1] == '1' ): # This needs to be counted as move
                     remove_blocked( who )
 
             elif( msg[0] == '4' ): # Client saying decrement treasure
-                #(4;who)
-                #(3;who)
-                send_back = '3;' + msg[1] + '\n'
+                # (4;who)   (3;who)
+                send_back = tokenize( 3, msg[1] )
+                # send_back = '3;' + msg[1] + '\n'
                 send_rest( send_back, who )
-

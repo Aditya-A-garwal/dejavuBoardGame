@@ -1,5 +1,5 @@
-BOARD_DIM     = 16
-GRID_DIM      = 60
+BOARD_DIM     = 12
+GRID_DIM      = 54
 
 def BIT1( _x ):
     if( _x & 1 ): return True
