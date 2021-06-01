@@ -3,6 +3,10 @@ import socket , selectors
 import colors , BIT
 import random
 
+# Collect all dependencies
+import os
+os.system('pip install --user pygame')
+
 MSG_BLOCK_LEN = 2048
 BOARD_DIM     = 12
 GRID_DIM      = 54
@@ -22,7 +26,7 @@ pygame.display.set_caption( name )
 mouse_pos   = [0, 0]
 
 # Address of server
-serv_addr   = (input('Enter Server IP: ').strip(), 8080)
+serv_addr   = (input('Enter Server IP: ').strip(), 48900)
 
 my_sock     = socket.socket()
 sock_mngr   = selectors.DefaultSelector()

@@ -72,8 +72,8 @@ def accept_name( _id ):
     print(_id, names[_id])
 
 # Start server
-my_ip = '127.0.0.1'
-my_port = 8080
+my_ip = ''
+my_port = 48900
 
 master_sock = socket.socket()
 socket_manager = selectors.DefaultSelector()
