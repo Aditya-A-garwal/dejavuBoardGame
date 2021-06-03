@@ -1,11 +1,10 @@
+import os
+os.system('pip install --user pygame')
+
 import pygame , pygame.freetype
 import socket , selectors
 import colors , BIT
 import random
-
-# Collect all dependencies
-import os
-os.system('pip install --user pygame')
 
 MSG_BLOCK_LEN = 2048
 BOARD_DIM     = 12
